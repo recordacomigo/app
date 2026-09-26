@@ -1,0 +1,194 @@
+@font-face { font-family: 'Fredoka'; font-style: normal; font-weight: 500 700; font-display: swap; src: url(fonts/fredoka-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Fredoka'; font-style: normal; font-weight: 500 700; font-display: swap; src: url(fonts/fredoka-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 500 900; font-display: swap; src: url(fonts/nunito-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 500 900; font-display: swap; src: url(fonts/nunito-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+:root { --fundo: #fffaf2; --tinta: #26323a; --suave: #6b7780; --c: #2f7fb8; --c2: #e8f2fa; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background: var(--fundo); color: var(--tinta); font-family: "Nunito", system-ui, sans-serif; }
+#app { max-width: 560px; margin: 0 auto; padding: 16px 16px 48px; min-height: 100vh; }
+img.f3d { vertical-align: middle; }
+.topo { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.voltar { font: 800 17px Nunito; color: var(--c); text-decoration: none; background: #fff; border-radius: 30px; padding: 10px 16px; box-shadow: 0 2px 0 #e6ebee; }
+.faixa { display: flex; align-items: center; gap: 12px; background: var(--c); color: #fff; border-radius: 20px; padding: 10px 14px; }
+.faixa h2 { font: 600 20px Fredoka; margin: 0; flex: 1; }
+.titulo { font: 600 29px Fredoka; margin: 16px 0 6px; line-height: 1.15; }
+.dica { font-size: 18px; line-height: 1.4; background: var(--c2); border-radius: 16px; padding: 12px 14px; margin: 10px 0 16px; }
+.botao { display: block; width: 100%; font: 800 19px Nunito; border: 0; border-radius: 18px; padding: 16px; background: var(--c); color: #fff; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,.15); text-decoration: none; text-align: center; }
+.botao.claro { background: #fff; color: var(--c); border: 3px solid var(--c); box-shadow: 0 3px 0 #e6ebee; }
+.botao.grande { font-size: 21px; padding: 19px; margin-top: 16px; }
+.botao + .botao { margin-top: 10px; }
+.duas-b { display: flex; gap: 10px; margin-top: 14px; } .duas-b .botao { margin: 0; }
+.imprimir { margin-top: 26px; } .imprimir p { text-align: center; color: var(--suave); font-size: 15px; margin: 8px 0 0; }
+.secao { font: 600 20px Fredoka; margin: 24px 4px 10px; display: flex; align-items: center; gap: 8px; }
+.bolas { display: inline-flex; gap: 3px; } .bolas i { width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--c); display: inline-block; } .bolas i.on { background: var(--c); }
+.rodape { text-align: center; color: var(--suave); font-size: 14px; margin: 24px 8px 0; }
+
+/* inicio */
+.ola { background: linear-gradient(160deg, #2f7fb8, #7a5aa6); color: #fff; border-radius: 26px; padding: 18px 18px 16px; text-align: center; }
+.ola h1 { font: 700 34px Fredoka; margin: 4px 0; } .ola p { margin: 0; font-size: 17px; opacity: .95; }
+.avos img { filter: drop-shadow(0 8px 12px rgba(0,0,0,.25)); }
+.cadernos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.card { display: flex; flex-direction: column; gap: 6px; background: var(--c); color: #fff; border-radius: 22px; padding: 14px; text-decoration: none; box-shadow: 0 4px 0 rgba(0,0,0,.12); min-height: 132px; }
+.card b { font: 600 18px Fredoka; line-height: 1.15; } .card span { font-size: 14px; opacity: .95; font-weight: 800; margin-top: auto; }
+.extras, .bonus { display: flex; flex-direction: column; gap: 10px; }
+.tranc { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 20px; padding: 12px 14px; box-shadow: 0 3px 0 #e6ebee; text-decoration: none; color: var(--tinta); border: 2px dashed #d3dbe0; }
+.tranc.livre { border: 3px solid var(--c); }
+.tranc b { font: 600 18px Fredoka; display: block; } .tranc small { color: var(--suave); font-size: 14px; font-weight: 700; }
+.tranc .cadeado { margin-left: auto; font-size: 26px; color: var(--c); font-weight: 800; }
+.pdf { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 18px; padding: 12px 14px; text-decoration: none; color: var(--tinta); font-weight: 800; box-shadow: 0 3px 0 #e6ebee; margin-top: 12px; font-size: 16px; }
+.bonus .pdf { margin: 0; }
+.hoje { display: flex; align-items: center; gap: 12px; background: #fff; border: 3px solid #c99613; border-radius: 22px; padding: 12px 14px; margin-top: 14px; text-decoration: none; color: var(--tinta); box-shadow: 0 4px 0 #efe3bf; }
+.hoje b { font: 600 20px Fredoka; display: block; } .hoje small { color: var(--suave); font-weight: 700; font-size: 15px; }
+.hoje.grande { border-color: var(--c); box-shadow: 0 4px 0 rgba(0,0,0,.08); }
+.novidade { position: relative; background: #fff; border: 3px solid #c99613; border-radius: 22px; padding: 16px 14px 14px; margin-bottom: 14px; box-shadow: 0 6px 18px rgba(201,150,19,.25); }
+.novidade .fecha { position: absolute; top: 8px; right: 10px; border: 0; background: #f3efe6; border-radius: 50%; width: 34px; height: 34px; font-size: 16px; cursor: pointer; }
+.selo { display: inline-block; background: #c99613; color: #fff; font: 800 12.5px Nunito; letter-spacing: .05em; border-radius: 20px; padding: 4px 12px; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.nv-l { display: flex; gap: 12px; align-items: center; margin: 10px 0 12px; } .nv-l b { font: 600 19px Fredoka; } .nv-l p { margin: 2px 0 0; font-size: 15.5px; }
+.novidade .botao { background: #c99613; }
+
+/* listas */
+.ativs { display: flex; flex-direction: column; gap: 10px; }
+.ativ { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 18px; padding: 13px 14px; text-decoration: none; color: var(--tinta); box-shadow: 0 3px 0 #e6ebee; }
+.ativ b { font: 600 18px Fredoka; flex: 1; } .ativ b small { display: block; font: 700 14px Nunito; color: var(--suave); }
+.num-a { width: 36px; height: 36px; flex: none; border-radius: 50%; background: var(--c2); color: var(--c); font: 800 16px Nunito; display: flex; align-items: center; justify-content: center; }
+.ativ .ck { font-size: 22px; color: #2e9460; font-weight: 800; }
+.ativ.feita { background: #f3faf5; }
+.dias { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.dia { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 14px; font: 800 18px Nunito; color: var(--tinta); text-decoration: none; box-shadow: 0 2px 0 #e6ebee; }
+.dia.feito { background: var(--c); color: #fff; } .dia.hj { outline: 4px solid #c99613; }
+.parabens { display: flex; align-items: center; gap: 12px; justify-content: center; font: 600 22px Fredoka; color: var(--c); }
+.aviso-s { background: #fff4e5; border-radius: 16px; padding: 12px 14px; font-size: 16px; line-height: 1.4; margin: 12px 0 0; }
+
+/* motores: comuns */
+.msg { text-align: center; font-weight: 800; min-height: 26px; margin: 12px 0 0; color: var(--c); font-size: 17px; }
+.cartao { background: #fff; border-radius: 22px; padding: 18px 16px; box-shadow: 0 4px 0 #e6ebee; text-align: center; }
+.frase { font: 600 23px Fredoka; line-height: 1.3; margin: 0 0 16px; }
+.frase u { text-decoration: none; border-bottom: 4px solid var(--c); padding: 0 24px; }
+.frase small { font: 700 17px Nunito; color: var(--suave); }
+.palavra { font: 800 32px Nunito; letter-spacing: .12em; }
+.seq { font: 800 28px Nunito; letter-spacing: .08em; word-spacing: 10px; }
+.opcoes { display: flex; flex-direction: column; gap: 10px; }
+.opcoes button { font: 800 21px Nunito; padding: 14px; border-radius: 16px; border: 3px solid var(--c2); background: var(--c2); color: var(--tinta); cursor: pointer; }
+.opcoes.grelha-op { display: grid; grid-template-columns: 1fr 1fr; }
+.opcoes.grelha-op button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; }
+.opcoes.grelha-op svg { width: 100%; height: auto; }
+.opcoes button.certo { background: #2e9460; border-color: #2e9460; color: #fff; }
+.opcoes button.errado, .alvos button.errado { background: #fbe9ef; border-color: #cf4f78; color: #cf4f78; animation: abana .35s; }
+@keyframes abana { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.progresso { display: flex; gap: 6px; justify-content: center; margin: 0 0 14px; flex-wrap: wrap; }
+.progresso i { width: 14px; height: 14px; border-radius: 50%; background: #e3e8eb; } .progresso i.on { background: var(--c); }
+.relogio svg { width: 230px; height: 230px; }
+svg.rel .aro { fill: #fff; stroke: var(--c); stroke-width: 4; } svg.rel text { font: 800 15px Nunito; fill: #26323a; }
+.ph { stroke: #26323a; stroke-width: 5; stroke-linecap: round; } .pm { stroke: var(--c); stroke-width: 3.5; stroke-linecap: round; }
+.cal-app { overflow-x: auto; margin-bottom: 12px; }
+.cal-app .mes { font: 600 22px Fredoka; color: var(--c); margin: 0 0 6px; }
+.cal-app table { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }
+.cal-app th { font-size: 12px; padding: 3px; background: var(--c); color: #fff; border-radius: 6px; }
+.cal-app td { width: 40px; height: 32px; text-align: center; font: 800 15px Nunito; background: var(--c2); border-radius: 6px; }
+.cal-app table.coord td { width: 54px; height: 54px; background: #fff; border: 2px solid var(--c2); }
+.cal-app table.coord th { background: none; color: var(--c); font: 600 18px Fredoka; }
+.cal-app table.coord img { width: 40px; height: 40px; }
+.talao { background: #fffdf8; border-radius: 14px; padding: 10px 14px; border-top: 6px solid var(--c); margin-bottom: 12px; font: 700 16px Nunito; text-align: left; }
+.talao .tt { text-align: center; font: 600 18px Fredoka; margin: 0 0 4px; } .talao table { width: 100%; } .talao .pr { text-align: right; }
+.moedas-app { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 12px; }
+.mistura { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 12px; }
+.modelo-app { background: var(--c2); border-radius: 14px; padding: 6px; margin-top: 8px; } .modelo-app svg { width: 100%; height: auto; }
+
+/* sopa */
+.grelha { display: grid; gap: 4px; margin: 0 auto 14px; user-select: none; }
+.grelha button { aspect-ratio: 1; border: 0; border-radius: 9px; background: #fff; font: 800 clamp(13px, 4.6vw, 24px) Nunito; color: var(--tinta); box-shadow: 0 2px 0 #e3e8eb; padding: 0; cursor: pointer; }
+.grelha button.ini { background: var(--c); color: #fff; transform: scale(1.1); }
+.grelha button.ok { color: #fff; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.chip { background: var(--c2); border: 2px solid var(--c); border-radius: 30px; padding: 5px 14px; font-weight: 800; font-size: 17px; }
+.chip.feito { background: var(--c); color: #fff; text-decoration: line-through; }
+
+/* alvos */
+.passo-n { text-align: center; font: 600 18px Fredoka; color: var(--c); margin: 0 0 8px; }
+.alvos { display: grid; gap: 6px; }
+.alvos button { aspect-ratio: 1; border: 3px solid transparent; background: #fff; border-radius: 12px; box-shadow: 0 2px 0 #e3e8eb; cursor: pointer; padding: 2px; display: flex; align-items: center; justify-content: center; }
+.alvos button img { width: 100%; height: auto; max-width: 64px; }
+.alvos.txt button { font: 800 22px Nunito; color: var(--tinta); }
+.alvos.pal button { aspect-ratio: auto; padding: 14px 6px; font-size: 19px; }
+.alvos button.ok { background: #2e9460; color: #fff; border-color: #2e9460; }
+.mem-pal { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 16px; } .mem-pal span { background: var(--c2); border-radius: 14px; padding: 14px 6px; font: 800 20px Nunito; }
+.mem-img { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 12px 0 16px; } .mem-img img { width: 84px; height: 84px; }
+.rot-app { font: 600 18px Fredoka; color: var(--c); margin: 0 0 6px; }
+
+/* pares */
+.pares { display: grid; gap: 8px; }
+.carta { aspect-ratio: 3/4; border: 0; border-radius: 14px; cursor: pointer; background: var(--c); color: #fff; font: 700 34px Fredoka; box-shadow: 0 3px 0 rgba(0,0,0,.15); position: relative; padding: 0; }
+.carta .fr { display: none; } .carta.virada { background: #fff; } .carta.virada .fr { display: flex; align-items: center; justify-content: center; } .carta.virada .vs { display: none; }
+.carta .fr img { width: 80%; height: auto; } .carta.ok { background: #e6f5ec; outline: 3px solid #2e9460; }
+
+/* sudoku */
+table.sud { border-collapse: collapse; margin: 6px auto 14px; border: 5px solid var(--c); background: #fff; }
+table.sud td { border: 1.5px solid #b8c3c9; text-align: center; font: 800 28px Nunito; width: 64px; height: 64px; }
+table.sud.s6 td { width: 50px; height: 50px; font-size: 24px; }
+table.sud td.bd { border-right: 5px solid var(--c); } table.sud td.bb { border-bottom: 5px solid var(--c); }
+table.sud td.vazio { color: var(--c); cursor: pointer; background: #fbfdfe; } table.sud td.sel { background: var(--c2); outline: 3px solid var(--c); outline-offset: -3px; }
+table.sud td.mal { color: #cf4f78; background: #fbe9ef; }
+.teclas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; } .teclas button { font: 800 24px Nunito; padding: 12px; border-radius: 14px; border: 0; background: var(--c2); color: var(--tinta); cursor: pointer; }
+.teclas .apaga { background: #f3efe6; }
+
+/* desenho e pontos */
+.modelo-d svg, .fundo svg { width: 100%; height: auto; display: block; }
+.modelo-d { background: #fff; border-radius: 14px; padding: 6px; margin-bottom: 8px; }
+.tela { position: relative; background: #fff; border-radius: 14px; padding: 6px; } .tela canvas { position: absolute; left: 6px; top: 6px; }
+.quadr .gr line { stroke: #dfe5e8; stroke-width: 1; } .quadr .dt circle { fill: #8c9aa2; } .traco { fill: none; stroke: var(--c); stroke-width: 4; stroke-linejoin: round; }
+svg.lab .par { fill: none; stroke: #26323a; stroke-width: 3.5; stroke-linecap: round; } svg.lab .io { font: 800 15px Nunito; fill: var(--c); } svg.lab .cam { display: none; }
+svg.pontos-app { width: 100%; height: auto; background: #fff; border-radius: 16px; }
+svg.pontos-app .hit { fill: transparent; cursor: pointer; } svg.pontos-app .dot { fill: #26323a; }
+svg.pontos-app text { font: 800 20px Nunito; fill: var(--c); pointer-events: none; }
+svg.pontos-app .ok .dot { fill: var(--c); } svg.pontos-app .linhas line { stroke: var(--c); stroke-width: 6; stroke-linecap: round; }
+
+/* conversa e exercicio */
+.conversa { min-height: 220px; display: flex; flex-direction: column; justify-content: center; }
+.conversa .pergunta { font: 600 26px Fredoka; line-height: 1.3; margin: 8px 0; }
+.ex h3 { font: 600 24px Fredoka; margin: 6px 0 2px; } .ex .dose { font-weight: 800; color: var(--c); margin: 0 0 8px; }
+.passos-ex { text-align: left; font-size: 18px; line-height: 1.45; padding-left: 1.4em; } .cuidado { font-size: 15px; color: #b35c00; font-weight: 700; }
+.relog { font: 700 44px Fredoka; color: var(--c); margin-top: 6px; }
+
+/* oferta */
+.of-topo { text-align: center; } .of-topo h1 { font: 700 32px Fredoka; margin: 10px 0 6px; color: var(--c); } .of-topo p { font-size: 18px; line-height: 1.4; margin: 0 0 16px; }
+.of-lista { display: flex; flex-direction: column; gap: 10px; }
+.of-p { display: flex; gap: 12px; align-items: center; background: #fff; border-radius: 18px; padding: 12px 14px; box-shadow: 0 3px 0 #e6ebee; }
+.of-p b { font: 600 18px Fredoka; } .of-p p { margin: 2px 0 0; font-size: 15.5px; }
+.of-preco { text-align: center; margin-top: 18px; } .of-preco span { display: block; color: var(--suave); font-weight: 700; } .of-preco b { font: 700 40px Fredoka; color: var(--c); }
+
+/* celebracao */
+.festa { position: fixed; inset: 0; background: rgba(38,50,58,.55); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 9; }
+.festa.on { display: flex; }
+.festa .caixa { background: #fff; border-radius: 28px; padding: 26px 22px; text-align: center; max-width: 420px; width: 100%; animation: sobe .4s ease-out; }
+.festa h3 { font: 700 34px Fredoka; margin: 6px 0; color: var(--c); } .festa p { font-size: 18px; margin: 0 0 18px; }
+@keyframes sobe { from { transform: translateY(30px) scale(.9); opacity: 0; } }
+.confete { pointer-events: none; position: fixed; top: -20px; width: 10px; height: 16px; border-radius: 3px; animation: cai 2.4s linear forwards; z-index: 10; }
+@keyframes cai { to { transform: translateY(110vh) rotate(720deg); } }
+
+#papel { display: none; }
+@media print {
+  #app, .festa, .confete { display: none !important; }
+  #papel { display: block; }
+  body { background: #fff; }
+}
+
+/* PDF sempre visivel */
+.pdf-destaque { display: flex; align-items: center; gap: 12px; background: #fff; border: 3px solid var(--c); color: var(--c); border-radius: 18px; padding: 12px 14px; margin: 14px 0 4px; text-decoration: none; font: 800 18px Nunito; box-shadow: 0 3px 0 #e6ebee; }
+.baixar { margin: 6px 0 4px; }
+.b-pdf { display: flex; align-items: center; gap: 10px; background: var(--c); color: #fff; border-radius: 16px; padding: 12px 14px; text-decoration: none; font: 800 17.5px Nunito; box-shadow: 0 4px 0 rgba(0,0,0,.15); }
+.b-sec { display: flex; gap: 8px; margin-top: 8px; }
+.b-sec > * { flex: 1; font: 800 15px Nunito; color: var(--c); background: #fff; border: 2.5px solid var(--c2); border-radius: 14px; padding: 10px 8px; text-align: center; text-decoration: none; cursor: pointer; }
+.pdf.tr { color: var(--suave); } .pdf .cadeado { margin-left: auto; }
+
+/* telas estreitas: nada passa da largura do telemovel */
+.grelha button, .alvos button { min-width: 0; overflow: hidden; }
+.grelha.gm { gap: 3px; } .grelha.gm button { font-size: clamp(12px, 4vw, 22px); border-radius: 7px; }
+.grelha.gg { gap: 2px; } .grelha.gg button { font-size: clamp(11px, 3.5vw, 20px); border-radius: 6px; }
+.alvos.txt button { font-size: clamp(14px, 4.6vw, 22px); padding: 0; }
+.cal-app { overflow: visible; }
+.cal-app table { width: 100%; table-layout: fixed; }
+.cal-app th { font-size: 13px; padding: 3px 0; }
+.cal-app td { width: auto; height: auto; aspect-ratio: 1.25; font-size: clamp(13px, 3.8vw, 15px); }
+.cal-app table.coord th:first-child { width: 26px; }
+.cal-app table.coord td { width: auto; height: auto; aspect-ratio: 1; }
+.cal-app table.coord img { width: 80%; height: auto; max-width: 40px; }
