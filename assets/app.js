@@ -23,7 +23,28 @@
   /* pacote "Dia Ativo" (Corpo Ativo + Jogos, o upsell de 27 EUR): quem nao tem nenhum dos dois ve o pacote no lugar
      dos dois avulsos; quem ja tem um ve so o que falta. Sem checkout, nao aparece (08/10/2026) */
   const PACOTE = CFG.pacote || null;
-  const pacoteVale = () => !!(PACOTE && PACOTE.checkout && PACOTE.inclui.every((k) => !tem.has(k)));
+  /* oferta especial com prazo VERDADEIRO (Vini, 08/10/2026): o Dia Ativo a 27 EUR vale PACOTE.prazo_h horas a contar da
+     1.a abertura do app neste aparelho. Acabado o prazo, o pacote SAI do app e ficam o Corpo Ativo e os Jogos avulsos
+     (24,90 + 12,90 = 37,80). Contador que mente e pratica proibida na UE (Diretiva 2005/29/CE, anexo I, n.o 7).
+     Sem localStorage (navegacao privada) o relogio recomecaria a cada visita: ai nao se mostra contador nenhum */
+  let ini = ler("lc-oferta-ini", 0);
+  if (!ini) { ini = Date.now(); gravar("lc-oferta-ini", ini); }
+  const comPrazo = !!(PACOTE && PACOTE.prazo_h) && ler("lc-oferta-ini", 0) === ini;
+  const fimOferta = comPrazo ? ini + PACOTE.prazo_h * 3600 * 1000 : Infinity;
+  const pacoteVale = () => !!(PACOTE && PACOTE.checkout && PACOTE.inclui.every((k) => !tem.has(k)) && Date.now() < fimOferta);
+  const faltam = () => { const s = Math.max(0, Math.floor((fimOferta - Date.now()) / 1000)); return `${Math.floor(s / 3600)}h ${String(Math.floor(s / 60) % 60).padStart(2, "0")}m ${String(s % 60).padStart(2, "0")}s`; };
+  let relogioOferta = null;
+  const ligaPrazo = () => {
+    clearInterval(relogioOferta);
+    if (!comPrazo || !document.querySelector(".prazo-of b")) return;
+    relogioOferta = setInterval(() => {
+      const els = document.querySelectorAll(".prazo-of b");
+      if (!els.length) return clearInterval(relogioOferta);
+      if (Date.now() >= fimOferta) { clearInterval(relogioOferta); return rota(); }
+      els.forEach((e) => (e.textContent = faltam()));
+    }, 1000);
+  };
+  const prazoHtml = () => (comPrazo ? `<div class="prazo-of">⏳ Este preço especial termina em <b>${faltam()}</b></div>` : "");
   const vitrine = () => { const r = []; for (const k of ORDEM) { if (pacoteVale() && PACOTE.inclui.includes(k)) { if (!r.includes("d")) r.push("d"); } else r.push(k); } return r.includes("d") ? ["d", ...r.filter((k) => k !== "d")] : r; };
   const X = (k) => (k === "d" ? PACOTE : EXTRAS[k]);
 
@@ -279,11 +300,12 @@
   function destaque() {
     if (!pacoteVale()) return "";
     const x = PACOTE;
-    return `<div class="destaque" style="--c:${x.cor};--c2:${x.cor2}"><span class="selo">RECOMENDADO PARA SI</span>
+    return `<div class="destaque" style="--c:${x.cor};--c2:${x.cor2}"><span class="selo">OFERTA ESPECIAL</span>
       <h2>${img(x.icone, 46)}${esc(x.nome)}</h2><p>${esc(x.gancho)}</p>
       ${x.imagem ? `<a href="#/oferta/d"><img class="dt-img" src="${x.imagem}" width="1000" height="760" alt="As folhas dos jogos e dos exercícios do Dia Ativo"></a>` : ""}
       <div class="dt-pontos">${x.pontos.map((p) => `<div>${img(p[0], 36)}<span><b>${esc(p[1])}:</b> ${esc(p[2])}</span></div>`).join("")}</div>
       <div class="dt-preco">${x.ancora ? `<s>${esc(x.ancora)}</s>` : ""}<b>${esc(x.preco)}</b></div>
+      ${prazoHtml()}${comPrazo && x.ancora ? `<p class="dt-depois">Depois, os dois só em separado: ${esc(x.ancora)}.</p>` : ""}
       <a class="botao grande" href="${x.checkout}">Quero o ${esc(x.nome)}</a>
       <a class="dt-mais" href="#/oferta/d">Ver tudo o que inclui ›</a></div>`;
   }
@@ -323,6 +345,7 @@
       <p class="secao">Bónus para descarregar</p><div class="bonus">${bonus}</div>
       <p class="rodape">Estas atividades são um passatempo para exercitar a mente. Não substituem o acompanhamento médico.</p>`;
     const f = $(".novidade .fecha"); if (f) f.onclick = () => { gravar("lc-faixa", Date.now()); $(".novidade").remove(); };
+    ligaPrazo();
   }
 
   async function caderno(id) {
@@ -439,14 +462,17 @@
 
   /* ------------------------------ pagina de oferta (venda dentro do produto) */
   function oferta(k) {
+    if (k === "d" && !pacoteVale()) return hub();
     const x = X(k); cor(x.cor, x.cor2);
     app.innerHTML = `${topo("#/", "‹ Início")}
-      <div class="of-topo">${img(x.icone, 110)}<span class="selo">NOVIDADE PARA SI</span><h1>${esc(x.nome)}</h1><p>${esc(x.promessa)}</p></div>
+      <div class="of-topo">${img(x.icone, 110)}<span class="selo">${k === "d" ? "OFERTA ESPECIAL" : "NOVIDADE PARA SI"}</span><h1>${esc(x.nome)}</h1><p>${esc(x.promessa)}</p></div>
       ${x.imagem ? `<img class="dt-img" src="${x.imagem}" width="1000" height="760" alt="">` : ""}
       <div class="of-lista">${x.pontos.map((p) => `<div class="of-p">${img(p[0], 46)}<div><b>${esc(p[1])}</b><p>${esc(p[2])}</p></div></div>`).join("")}</div>
       <div class="of-preco"><span>Acesso para sempre, neste mesmo sítio</span>${x.ancora ? `<s>${esc(x.ancora)}</s>` : ""}<b>${esc(x.preco)}</b>${x.ancora ? `<span>Os dois em separado custam ${esc(x.ancora)}</span>` : ""}</div>
+      ${k === "d" ? prazoHtml() : ""}
       <a class="botao grande" href="${x.checkout}">Quero o ${esc(x.nome)}</a>
       <p class="rodape">Pagamento seguro. Depois de pagar, recebe o link de acesso por e-mail.</p>`;
+    ligaPrazo();
   }
 
   /* ------------------------------------------------------------------ rotas */
