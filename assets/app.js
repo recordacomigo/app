@@ -471,7 +471,7 @@
       <div class="of-preco"><span>Acesso para sempre, neste mesmo sítio</span>${x.ancora ? `<s>${esc(x.ancora)}</s>` : ""}<b>${esc(x.preco)}</b>${x.ancora ? `<span>Os dois em separado custam ${esc(x.ancora)}</span>` : ""}</div>
       ${k === "d" ? prazoHtml() : ""}
       <a class="botao grande" href="${x.checkout}">Quero o ${esc(x.nome)}</a>
-      <p class="rodape">Pagamento seguro. Depois de pagar, recebe o link de acesso por e-mail.</p>`;
+      <p class="rodape">Pagamento seguro pela Hotmart. Assim que o pagamento for confirmado, o acesso fica na sua área de compras da Hotmart, com o guia e o link para abrir aqui.</p>`;
     ligaPrazo();
   }
 
