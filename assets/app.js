@@ -24,7 +24,7 @@
      dos dois avulsos; quem ja tem um ve so o que falta. Sem checkout, nao aparece (08/10/2026) */
   const PACOTE = CFG.pacote || null;
   const pacoteVale = () => !!(PACOTE && PACOTE.checkout && PACOTE.inclui.every((k) => !tem.has(k)));
-  const vitrine = () => { const r = []; for (const k of ORDEM) { if (pacoteVale() && PACOTE.inclui.includes(k)) { if (!r.includes("d")) r.push("d"); } else r.push(k); } return r; };
+  const vitrine = () => { const r = []; for (const k of ORDEM) { if (pacoteVale() && PACOTE.inclui.includes(k)) { if (!r.includes("d")) r.push("d"); } else r.push(k); } return r.includes("d") ? ["d", ...r.filter((k) => k !== "d")] : r; };
   const X = (k) => (k === "d" ? PACOTE : EXTRAS[k]);
 
   /* ------------------------------------------------------------------ celebracao */
@@ -274,7 +274,22 @@
   const pdfTopo = (f, rot) => `<a class="pdf-destaque" href="../assets/pdf/${f}" download>${img("page_facing_up.png", 38)}<span>${rot}</span></a>`;
   const ligaImprimir = (html) => { document.querySelectorAll(".bt-imp").forEach((b) => b.onclick = () => { $("#papel").innerHTML = html.split("{{IMG}}").join("../assets/img/"); setTimeout(() => window.print(), 300); }); };
 
+  /* o Dia Ativo e a oferta principal (Vini, 08/10/2026): cartao grande logo abaixo do topo, com a imagem das folhas,
+     o preco ancorado e o botao direto ao checkout. Enquanto ele aparece, a faixa de novidade nao mostra outra coisa por cima */
+  function destaque() {
+    if (!pacoteVale()) return "";
+    const x = PACOTE;
+    return `<div class="destaque" style="--c:${x.cor};--c2:${x.cor2}"><span class="selo">RECOMENDADO PARA SI</span>
+      <h2>${img(x.icone, 46)}${esc(x.nome)}</h2><p>${esc(x.gancho)}</p>
+      ${x.imagem ? `<a href="#/oferta/d"><img class="dt-img" src="${x.imagem}" width="1000" height="760" alt="As folhas dos jogos e dos exercícios do Dia Ativo"></a>` : ""}
+      <div class="dt-pontos">${x.pontos.map((p) => `<div>${img(p[0], 36)}<span><b>${esc(p[1])}:</b> ${esc(p[2])}</span></div>`).join("")}</div>
+      <div class="dt-preco">${x.ancora ? `<s>${esc(x.ancora)}</s>` : ""}<b>${esc(x.preco)}</b></div>
+      <a class="botao grande" href="${x.checkout}">Quero o ${esc(x.nome)}</a>
+      <a class="dt-mais" href="#/oferta/d">Ver tudo o que inclui ›</a></div>`;
+  }
+
   function faixaNovidade() {
+    if (pacoteVale()) return "";
     const ordem = vitrine().filter((x) => !tem.has(x));
     if (!ordem.length) return "";
     const ult = ler("lc-faixa", 0);
@@ -300,6 +315,7 @@
     const bonus = CFG.bonus.map((b) => `<a class="pdf" href="../assets/pdf/${b.ficheiro}" download>${img(b.icone, 40)}${esc(b.nome)}</a>`).join("");
     app.innerHTML = `${faixaNovidade()}
       <div class="ola"><div class="avos">${img("old_woman.png", 92)}${img("old_man.png", 92)}</div><h1>${esc(CFG.marca)}</h1><p>Atividades para manter a mente ativa. Fazer no ecrã ou imprimir.</p></div>
+      ${destaque()}
       <a class="pdf-destaque" href="#/pdfs">${img("page_facing_up.png", 38)}<span>Prefere papel? Descarregar tudo em PDF</span></a>
       ${hoje}
       <p class="secao">Os 8 cadernos</p><div class="cadernos">${cards}</div>
@@ -426,8 +442,9 @@
     const x = X(k); cor(x.cor, x.cor2);
     app.innerHTML = `${topo("#/", "‹ Início")}
       <div class="of-topo">${img(x.icone, 110)}<span class="selo">NOVIDADE PARA SI</span><h1>${esc(x.nome)}</h1><p>${esc(x.promessa)}</p></div>
+      ${x.imagem ? `<img class="dt-img" src="${x.imagem}" width="1000" height="760" alt="">` : ""}
       <div class="of-lista">${x.pontos.map((p) => `<div class="of-p">${img(p[0], 46)}<div><b>${esc(p[1])}</b><p>${esc(p[2])}</p></div></div>`).join("")}</div>
-      <div class="of-preco"><span>Acesso para sempre, neste mesmo sítio</span><b>${esc(x.preco)}</b></div>
+      <div class="of-preco"><span>Acesso para sempre, neste mesmo sítio</span>${x.ancora ? `<s>${esc(x.ancora)}</s>` : ""}<b>${esc(x.preco)}</b>${x.ancora ? `<span>Os dois em separado custam ${esc(x.ancora)}</span>` : ""}</div>
       <a class="botao grande" href="${x.checkout}">Quero o ${esc(x.nome)}</a>
       <p class="rodape">Pagamento seguro. Depois de pagar, recebe o link de acesso por e-mail.</p>`;
   }
