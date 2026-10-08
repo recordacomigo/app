@@ -1,6 +1,7 @@
 /* App de atividades do kit. Um ficheiro, sem dependencias.
    O acesso vem do CAMINHO (window.CFG.acesso, ex. "fp") e soma-se ao que ja foi liberado neste
-   aparelho (localStorage "lc-acesso"). f = kit, p = Plano de 90 Dias, m = Memorias da Epoca, c = Corpo Ativo. */
+   aparelho (localStorage "lc-acesso"). f = kit, p = Plano de 90 Dias, m = Memorias da Epoca, c = Corpo Ativo,
+   j = Jogos para Jogar Juntos (08/10/2026). Extra sem checkout e sem acesso nao aparece (nao se vende o que nao tem link). */
 (function () {
   const CFG = window.CFG;
   const D = "../assets/dados/";
@@ -17,7 +18,14 @@
   const cor = (c, c2) => { document.documentElement.style.setProperty("--c", c); document.documentElement.style.setProperty("--c2", c2); };
   const img = (f, t = 48) => `<img class="f3d" src="../assets/img/${f}" width="${t}" height="${t}" alt="">`;
   const esc = (s) => String(s).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
-  const EXTRAS = CFG.extras; // {p:{...}, m:{...}, c:{...}}
+  const EXTRAS = CFG.extras; // {p:{...}, m:{...}, c:{...}, j:{...}}
+  const ORDEM = ["p", "m", "c", "j"].filter((k) => EXTRAS[k] && (tem.has(k) || EXTRAS[k].checkout));
+  /* pacote "Dia Ativo" (Corpo Ativo + Jogos, o upsell de 27 EUR): quem nao tem nenhum dos dois ve o pacote no lugar
+     dos dois avulsos; quem ja tem um ve so o que falta. Sem checkout, nao aparece (08/10/2026) */
+  const PACOTE = CFG.pacote || null;
+  const pacoteVale = () => !!(PACOTE && PACOTE.checkout && PACOTE.inclui.every((k) => !tem.has(k)));
+  const vitrine = () => { const r = []; for (const k of ORDEM) { if (pacoteVale() && PACOTE.inclui.includes(k)) { if (!r.includes("d")) r.push("d"); } else r.push(k); } return r; };
+  const X = (k) => (k === "d" ? PACOTE : EXTRAS[k]);
 
   /* ------------------------------------------------------------------ celebracao */
   function festa(titulo, texto, voltar) {
@@ -207,6 +215,36 @@
     mostra();
   };
 
+  /* adivinha: a resposta so aparece quando se pede (antes vinha junto e estragava o jogo) */
+  M.adivinha = (el, d, fim) => {
+    let i = 0;
+    el.innerHTML = `<div class="cartao conversa"><p class="rot-app"></p><p class="pergunta"></p><p class="resp-a"></p></div><button class="botao claro ver">Ver a resposta</button><div class="duas-b"><button class="botao claro ant">‹ Anterior</button><button class="botao seg">Seguinte ›</button></div>`;
+    const mostra = () => { const it = d.itens[i]; $(".rot-app", el).textContent = "Adivinha " + (i + 1) + " de " + d.itens.length; $(".pergunta", el).textContent = it.q; $(".resp-a", el).textContent = ""; $(".ver", el).style.visibility = "visible"; $(".seg", el).textContent = i === d.itens.length - 1 ? "Terminar" : "Seguinte ›"; };
+    $(".ver", el).onclick = () => { $(".resp-a", el).textContent = d.itens[i].r; $(".ver", el).style.visibility = "hidden"; };
+    $(".ant", el).onclick = () => { if (i > 0) { i--; mostra(); } };
+    $(".seg", el).onclick = () => { if (i < d.itens.length - 1) { i++; mostra(); } else fim(); };
+    mostra();
+  };
+
+  /* sorteador do bingo: os numeros que ja sairam ficam guardados neste aparelho ate "Novo jogo" */
+  M.sorteio = (el) => {
+    let saidos = ler("lc-bingo", []);
+    el.innerHTML = `<div class="sorteio"><div class="bola">–</div><p class="sub-s"></p><button class="botao grande tirar">Tirar número</button><div class="saidos"></div><button class="botao claro novo">Novo jogo</button></div>`;
+    const mostra = (n) => {
+      $(".bola", el).textContent = n || "–";
+      $(".sub-s", el).textContent = saidos.length ? saidos.length + " de 90 números já saíram" : "Toque no botão para tirar o primeiro número";
+      $(".saidos", el).innerHTML = [...saidos].sort((a, b) => a - b).map((x) => `<span class="${x === n ? "ult" : ""}">${x}</span>`).join("");
+      $(".tirar", el).disabled = saidos.length >= 90;
+    };
+    $(".tirar", el).onclick = () => {
+      if (saidos.length >= 90) return;
+      let n; do { n = 1 + Math.floor(Math.random() * 90); } while (saidos.includes(n));
+      saidos.push(n); gravar("lc-bingo", saidos); mostra(n);
+    };
+    $(".novo", el).onclick = () => { if (saidos.length && !confirm("Começar um jogo novo? Os números que já saíram são apagados.")) return; saidos = []; gravar("lc-bingo", saidos); mostra(); };
+    mostra(saidos[saidos.length - 1]);
+  };
+
   M.rotina = (el, d, fim) => {
     let i = 0, rest = 0, t = null;
     el.innerHTML = `<div class="progresso">${d.passos.map(() => "<i></i>").join("")}</div><div class="cartao ex"><div class="ex-ic"></div><h3></h3><p class="dose"></p><ol class="passos-ex"></ol><p class="cuidado"></p><div class="relog">0:00</div></div><div class="duas-b"><button class="botao claro pausa">Começar</button><button class="botao seg">Seguinte ›</button></div>`;
@@ -237,11 +275,11 @@
   const ligaImprimir = (html) => { document.querySelectorAll(".bt-imp").forEach((b) => b.onclick = () => { $("#papel").innerHTML = html.split("{{IMG}}").join("../assets/img/"); setTimeout(() => window.print(), 300); }); };
 
   function faixaNovidade() {
-    const ordem = ["p", "m", "c"].filter((x) => !tem.has(x));
+    const ordem = vitrine().filter((x) => !tem.has(x));
     if (!ordem.length) return "";
     const ult = ler("lc-faixa", 0);
     if (Date.now() - ult < 24 * 3600 * 1000) return "";
-    const x = EXTRAS[ordem[0]];
+    const x = X(ordem[0]);
     return `<div class="novidade"><button class="fecha" aria-label="Fechar">✕</button><span class="selo">NOVIDADE PARA SI</span><div class="nv-l">${img(x.icone, 54)}<div><b>${esc(x.nome)}</b><p>${esc(x.gancho)}</p></div></div><a class="botao" href="#/oferta/${ordem[0]}">Ver como funciona</a></div>`;
   }
 
@@ -254,7 +292,7 @@
       cards += `<a class="card" href="#/c/${c.id}" style="--c:${c.cor}">${img(c.icone, 54)}<b>${esc(c.nome)}</b><span>${n ? n + " de " + c.total + " feitas" : c.total + " atividades"}</span></a>`;
     }
     const extra = (k) => {
-      const x = EXTRAS[k];
+      const x = X(k);
       if (tem.has(k)) return `<a class="tranc livre" href="#/${x.rota}" style="--c:${x.cor}">${img(x.icone, 50)}<div><b>${esc(x.nome)}</b><small>${esc(x.descricao)}</small></div><span class="cadeado">›</span></a>`;
       return `<a class="tranc" href="#/oferta/${k}">${img(x.icone, 50)}<div><b>${esc(x.nome)}</b><small>${esc(x.descricao)}</small></div><span class="cadeado">🔒</span></a>`;
     };
@@ -265,7 +303,7 @@
       <a class="pdf-destaque" href="#/pdfs">${img("page_facing_up.png", 38)}<span>Prefere papel? Descarregar tudo em PDF</span></a>
       ${hoje}
       <p class="secao">Os 8 cadernos</p><div class="cadernos">${cards}</div>
-      <p class="secao">Para ir mais longe</p><div class="extras">${["p", "m", "c"].map(extra).join("")}</div>
+      <p class="secao">Para ir mais longe</p><div class="extras">${vitrine().map(extra).join("")}</div>
       <p class="secao">Bónus para descarregar</p><div class="bonus">${bonus}</div>
       <p class="rodape">Estas atividades são um passatempo para exercitar a mente. Não substituem o acompanhamento médico.</p>`;
     const f = $(".novidade .fecha"); if (f) f.onclick = () => { gravar("lc-faixa", Date.now()); $(".novidade").remove(); };
@@ -352,21 +390,40 @@
     $(".festa .f-voltar").textContent = "Voltar às rotinas";
   }
 
+  /* ------------------------------ Jogos para Jogar Juntos */
+  async function jogos(i) {
+    if (!tem.has("j")) return oferta("j");
+    const x = EXTRAS.j; cor(x.cor, x.cor2);
+    const Jg = await dados("jogos");
+    if (i === undefined) {
+      app.innerHTML = `${topo("#/", "‹ Início")}${faixa(img(x.icone, 44), x.nome)}${pdfTopo(x.pdf, "Descarregar todos os jogos em PDF")}<p class="dica">Para jogar a dois, em família, numa visita ou no grupo. Imprimir, recortar e jogar.</p>
+        <div class="ativs">${Jg.jogos.map((g, k) => `<a class="ativ" href="#/jogos/${k}">${img(g.icone, 44)}<b>${esc(g.nome)}<small>${esc(g.resumo)}</small></b><span class="ck">›</span></a>`).join("")}</div>`;
+      return;
+    }
+    const g = Jg.jogos[+i];
+    app.innerHTML = `${topo("#/jogos", "‹ Jogos")}${faixa(img(x.icone, 40), x.nome)}<h1 class="titulo">${esc(g.nome)}</h1>${pdfTopo(g.pdf, "Descarregar este jogo em PDF")}
+      <p class="secao">Como jogar</p><ol class="como-j">${g.como.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>${g.app ? '<div class="motor"></div>' : ""}`;
+    if (g.app) {
+      M[g.app.motor]($(".motor"), g.app, () => festa("Muito bem!", "Que bom jogar juntos.", "#/jogos"));
+      $(".festa .f-voltar").textContent = "Voltar aos jogos";
+    }
+  }
+
   /* ------------------------------ todos os PDF */
   function pdfs() {
     cor("#2f7fb8", "#e8f2fa");
     const item = (f, nome, ic) => `<a class="pdf" href="../assets/pdf/${f}" download>${img(ic, 40)}${esc(nome)}</a>`;
-    const extra = (k) => { const x = EXTRAS[k]; return tem.has(k) ? item(x.pdf, x.nome, x.icone) : `<a class="pdf tr" href="#/oferta/${k}">${img(x.icone, 40)}${esc(x.nome)}<span class="cadeado">🔒</span></a>`; };
+    const extra = (k) => { const x = X(k); return tem.has(k) ? item(x.pdf, x.nome, x.icone) : `<a class="pdf tr" href="#/oferta/${k}">${img(x.icone, 40)}${esc(x.nome)}<span class="cadeado">🔒</span></a>`; };
     app.innerHTML = `${topo("#/", "‹ Início")}<h1 class="titulo">Tudo em PDF</h1><p class="dica">Descarregar, guardar e imprimir as vezes que quiser.</p>
       ${item("comecar-aqui.pdf", "Guia: como usar o kit", "open_book.png")}
       <p class="secao">Os 8 cadernos</p><div class="bonus">${CFG.cadernos.map((c) => item(c.id + ".pdf", c.nome, c.icone)).join("")}</div>
-      <p class="secao">Para ir mais longe</p><div class="bonus">${["p", "m", "c"].map(extra).join("")}</div>
+      <p class="secao">Para ir mais longe</p><div class="bonus">${vitrine().map(extra).join("")}</div>
       <p class="secao">Bónus</p><div class="bonus">${CFG.bonus.map((b) => item(b.ficheiro, b.nome, b.icone)).join("")}</div>`;
   }
 
   /* ------------------------------ pagina de oferta (venda dentro do produto) */
   function oferta(k) {
-    const x = EXTRAS[k]; cor(x.cor, x.cor2);
+    const x = X(k); cor(x.cor, x.cor2);
     app.innerHTML = `${topo("#/", "‹ Início")}
       <div class="of-topo">${img(x.icone, 110)}<span class="selo">NOVIDADE PARA SI</span><h1>${esc(x.nome)}</h1><p>${esc(x.promessa)}</p></div>
       <div class="of-lista">${x.pontos.map((p) => `<div class="of-p">${img(p[0], 46)}<div><b>${esc(p[1])}</b><p>${esc(p[2])}</p></div></div>`).join("")}</div>
@@ -387,6 +444,7 @@
     if (h[0] === "memorias") return memorias();
     if (h[0] === "m") return memorias(h[1], h[2]);
     if (h[0] === "corpo") return corpo(h[1]);
+    if (h[0] === "jogos") return jogos(h[1]);
     if (h[0] === "oferta") return oferta(h[1]);
     if (h[0] === "pdfs") return pdfs();
     hub();

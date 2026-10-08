@@ -192,3 +192,14 @@ svg.pontos-app .ok .dot { fill: var(--c); } svg.pontos-app .linhas line { stroke
 .cal-app table.coord th:first-child { width: 26px; }
 .cal-app table.coord td { width: auto; height: auto; aspect-ratio: 1; }
 .cal-app table.coord img { width: 80%; height: auto; max-width: 40px; }
+
+/* jogos (08/10/2026) */
+.como-j { padding-left: 1.4em; margin: 0 0 18px; font-size: 18px; line-height: 1.45; } .como-j li { margin-bottom: 8px; } .como-j li::marker { color: var(--c); font-weight: 800; }
+.sorteio { text-align: center; }
+.sorteio .bola { width: 168px; height: 168px; margin: 6px auto 10px; border-radius: 50%; background: var(--c); color: #fff; display: flex; align-items: center; justify-content: center; font-family: Fredoka, sans-serif; font-size: 84px; font-weight: 700; box-shadow: inset 0 -10px 0 rgba(0,0,0,.15), 0 10px 24px rgba(0,0,0,.18); }
+.sorteio .sub-s { color: #5d6878; font-size: 17px; margin: 0 0 14px; }
+.sorteio .saidos { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 18px 0; }
+.sorteio .saidos span { min-width: 40px; padding: 6px 4px; border-radius: 10px; background: var(--c2); color: var(--c); font-weight: 800; font-size: 17px; }
+.sorteio .saidos span.ult { background: var(--c); color: #fff; }
+.cartao .resp-a { font-family: Fredoka, sans-serif; font-size: 26px; font-weight: 700; color: var(--c); margin: 10px 0 0; min-height: 34px; }
+.botao.ver { display: block; margin: 12px auto; }
