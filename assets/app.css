@@ -220,3 +220,18 @@ svg.pontos-app .ok .dot { fill: var(--c); } svg.pontos-app .linhas line { stroke
 .prazo-of { background: #fff4e5; border: 2px solid var(--c); color: #7a3413; border-radius: 14px; padding: 9px 10px; margin: 10px 0 2px; font-size: 16px; font-weight: 800; text-align: center; }
 .prazo-of b { color: var(--c); font: 700 21px Fredoka; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .dt-depois { margin: 6px 0 0; font-size: 14.5px; color: var(--suave); font-weight: 700; }
+
+/* upgrade pela diferenca para o Completo e amostras gratis (12/10/2026): sai o Dia Ativo com contador */
+.destaque.up { --c: #5b4fc4; --c2: #eeecfb; box-shadow: 0 8px 22px rgba(91,79,196,.22); }
+.destaque.up h2 { font-size: 27px; line-height: 1.15; }
+.dt-pontos.up a { display: flex; align-items: center; gap: 10px; background: var(--c2); border-radius: 14px; padding: 9px 10px; font-size: 15.5px; line-height: 1.3; color: var(--tinta); text-decoration: none; }
+.dt-pontos.up a span { flex: 1; } .dt-pontos.up a em { display: block; font-style: normal; font-weight: 800; color: var(--c); font-size: 14px; margin-top: 3px; }
+.tranc .exp { margin-left: auto; background: var(--c2); color: var(--c); font-weight: 800; font-size: 13.5px; border-radius: 20px; padding: 6px 10px; white-space: nowrap; }
+.amostra { display: flex; align-items: center; gap: 10px; background: #f1effc; border: 2px solid #5b4fc4; border-radius: 16px; padding: 9px 12px; margin: 10px 0; color: var(--tinta); text-decoration: none; font-size: 15px; line-height: 1.3; }
+.amostra span { flex: 1; } .amostra em { font-style: normal; font-weight: 800; color: #5b4fc4; white-space: nowrap; }
+.ativ.tr, .dia.tr { opacity: .55; } .ativ .ck { font-size: 13px; font-weight: 800; color: var(--c); }
+.of-up { background: #fff; border: 3px solid #5b4fc4; border-radius: 22px; padding: 14px; margin-top: 18px; text-align: center; --c: #5b4fc4; }
+.of-up > p { margin: 0 0 6px; font-size: 16.5px; line-height: 1.35; }
+.f-slot:empty { display: none; }
+.f-of { display: flex; align-items: center; gap: 10px; text-align: left; background: #f1effc; border-radius: 16px; padding: 10px 12px; margin: -6px 0 16px; color: var(--tinta); text-decoration: none; font-size: 15px; line-height: 1.3; }
+.f-of span { flex: 1; } .f-of em { font-style: normal; font-weight: 800; color: #5b4fc4; white-space: nowrap; }

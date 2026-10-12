@@ -19,39 +19,29 @@
   const img = (f, t = 48) => `<img class="f3d" src="../assets/img/${f}" width="${t}" height="${t}" alt="">`;
   const esc = (s) => String(s).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
   const EXTRAS = CFG.extras; // {p:{...}, m:{...}, c:{...}, j:{...}}
-  const ORDEM = ["p", "m", "c", "j"].filter((k) => EXTRAS[k] && (tem.has(k) || EXTRAS[k].checkout));
-  /* pacote "Dia Ativo" (Corpo Ativo + Jogos, o upsell de 27 EUR): quem nao tem nenhum dos dois ve o pacote no lugar
-     dos dois avulsos; quem ja tem um ve so o que falta. Sem checkout, nao aparece (08/10/2026) */
-  const PACOTE = CFG.pacote || null;
-  /* oferta especial com prazo VERDADEIRO (Vini, 08/10/2026): o Dia Ativo a 27 EUR vale PACOTE.prazo_h horas a contar da
-     1.a abertura do app neste aparelho. Acabado o prazo, o pacote SAI do app e ficam o Corpo Ativo e os Jogos avulsos
-     (24,90 + 12,90 = 37,80). Contador que mente e pratica proibida na UE (Diretiva 2005/29/CE, anexo I, n.o 7).
-     Sem localStorage (navegacao privada) o relogio recomecaria a cada visita: ai nao se mostra contador nenhum */
-  let ini = ler("lc-oferta-ini", 0);
-  if (!ini) { ini = Date.now(); gravar("lc-oferta-ini", ini); }
-  const comPrazo = !!(PACOTE && PACOTE.prazo_h) && ler("lc-oferta-ini", 0) === ini;
-  const fimOferta = comPrazo ? ini + PACOTE.prazo_h * 3600 * 1000 : Infinity;
-  const pacoteVale = () => !!(PACOTE && PACOTE.checkout && PACOTE.inclui.every((k) => !tem.has(k)) && Date.now() < fimOferta);
-  const faltam = () => { const s = Math.max(0, Math.floor((fimOferta - Date.now()) / 1000)); return `${Math.floor(s / 3600)}h ${String(Math.floor(s / 60) % 60).padStart(2, "0")}m ${String(s % 60).padStart(2, "0")}s`; };
-  let relogioOferta = null;
-  const ligaPrazo = () => {
-    clearInterval(relogioOferta);
-    if (!comPrazo || !document.querySelector(".prazo-of b")) return;
-    relogioOferta = setInterval(() => {
-      const els = document.querySelectorAll(".prazo-of b");
-      if (!els.length) return clearInterval(relogioOferta);
-      if (Date.now() >= fimOferta) { clearInterval(relogioOferta); return rota(); }
-      els.forEach((e) => (e.textContent = faltam()));
-    }, 1000);
-  };
-  const prazoHtml = () => (comPrazo ? `<div class="prazo-of">⏳ Este preço especial termina em <b>${faltam()}</b></div>` : "");
-  const vitrine = () => { const r = []; for (const k of ORDEM) { if (pacoteVale() && PACOTE.inclui.includes(k)) { if (!r.includes("d")) r.push("d"); } else r.push(k); } return r.includes("d") ? ["d", ...r.filter((k) => k !== "d")] : r; };
-  const X = (k) => (k === "d" ? PACOTE : EXTRAS[k]);
+  const ORDEM = ["p", "m", "c", "j"].filter((k) => EXTRAS[k]);
+  /* venda dentro do app (Vini, 12/10/2026): os pacotes da LP viram UPGRADE PELA DIFERENCA para o Completo (34,90 EUR).
+     Quem so tem o kit paga +19,90 (ou +9,90 pelo Dia a Dia = Plano + Jogos); quem ja tem algum complemento paga +9,90.
+     Sem contador: o preco e a diferenca real e nao acaba. Cada item trancado tem AMOSTRA gratis para ela provar antes
+     (Plano dias 1 a 3, 1.a pergunta e 1.a conversa das Memorias, 1.a rotina do Corpo, jogo da memoria). Sai o Dia Ativo */
+  const UP = CFG.up || null;
+  const BCOMP = CFG.bonus_completo || [];
+  const tenhoN = ORDEM.filter((k) => tem.has(k)).length;
+  const completo = ORDEM.every((k) => tem.has(k)) && (tem.has("b") || !BCOMP.length);
+  const upgrade = () => (!UP || completo ? null : tenhoN >= 1 ? { preco: "+9,90 €", ck: UP.c9, ja: "parte do pacote" } : { preco: "+19,90 €", ck: UP.c19, ja: "o kit" });
+  const soDiaDia = () => !!(UP && UP.d9 && tenhoN === 0);
+  const falta = () => ["p", "j", "c", "m"].filter((k) => EXTRAS[k] && !tem.has(k)); // a ordem do cartao: o que mais pesa primeiro
+  const BX = { nome: "5 bónus exclusivos", icone: "trophy.png", cor: "#5b4fc4", cor2: "#eeecfb", descricao: "Festas do Ano, Livro da Minha Vida, Sessões de Grupo e mais",
+               dor: "Os 5 bónus que só o pacote Completo tem: para as festas do ano, para a família e para o grupo.", pontos: BCOMP.map((b) => [b.icone, b.nome, b.desc]) };
+  const X = (k) => (k === "b" ? BX : EXTRAS[k]);
+  const livre = { p: (d) => +d <= 3, m: (t, i) => +i === 0 && (t === "quiz" || t === "conversa"), c: (i) => +i === 0, j: (i) => +i === 3 };
+  const amostra = (k) => { const u = upgrade(); return u ? `<a class="amostra" href="#/oferta/${k}">${img("sparkles.png", 32)}<span><b>Está a experimentar.</b> O resto vem no pacote Completo, por ${u.preco}.</span><em>Ver ›</em></a>` : ""; };
 
   /* ------------------------------------------------------------------ celebracao */
-  function festa(titulo, texto, voltar) {
+  function festa(titulo, texto, voltar, oferta = "") {
     const f = $(".festa");
     $("h3", f).textContent = titulo; $("p", f).textContent = texto;
+    const slot = $(".f-slot", f); if (slot) slot.innerHTML = oferta;
     $(".f-voltar", f).setAttribute("href", voltar || "#/");
     f.classList.add("on");
     const cores = ["#7a5aa6", "#e07b24", "#2f7fb8", "#2e9460", "#cf4f78", "#c99613"];
@@ -295,29 +285,28 @@
   const pdfTopo = (f, rot) => `<a class="pdf-destaque" href="../assets/pdf/${f}" download>${img("page_facing_up.png", 38)}<span>${rot}</span></a>`;
   const ligaImprimir = (html) => { document.querySelectorAll(".bt-imp").forEach((b) => b.onclick = () => { $("#papel").innerHTML = html.split("{{IMG}}").join("../assets/img/"); setTimeout(() => window.print(), 300); }); };
 
-  /* o Dia Ativo e a oferta principal (Vini, 08/10/2026): cartao grande logo abaixo do topo, com a imagem das folhas,
-     o preco ancorado e o botao direto ao checkout. Enquanto ele aparece, a faixa de novidade nao mostra outra coisa por cima */
+  /* o upgrade para o Completo e a oferta principal do app (Vini, 08/10 e 12/10/2026): cartao no inicio, cada
+     complemento que falta com a DOR na primeira linha e o "Experimentar" que abre a amostra gratis */
   function destaque() {
-    if (!pacoteVale()) return "";
-    const x = PACOTE;
-    return `<div class="destaque" style="--c:${x.cor};--c2:${x.cor2}"><span class="selo">OFERTA ESPECIAL</span>
-      <h2>${img(x.icone, 46)}${esc(x.nome)}</h2><p>${esc(x.gancho)}</p>
-      ${x.imagem ? `<a href="#/oferta/d"><img class="dt-img" src="${x.imagem}" width="1000" height="760" alt="As folhas dos jogos e dos exercícios do Dia Ativo"></a>` : ""}
-      <div class="dt-pontos">${x.pontos.map((p) => `<div>${img(p[0], 36)}<span><b>${esc(p[1])}:</b> ${esc(p[2])}</span></div>`).join("")}</div>
-      <div class="dt-preco">${x.ancora ? `<s>${esc(x.ancora)}</s>` : ""}<b>${esc(x.preco)}</b></div>
-      ${prazoHtml()}${comPrazo && x.ancora ? `<p class="dt-depois">Depois, os dois só em separado: ${esc(x.ancora)}.</p>` : ""}
-      <a class="botao grande" href="${x.checkout}">Quero o ${esc(x.nome)}</a>
-      <a class="dt-mais" href="#/oferta/d">Ver tudo o que inclui ›</a></div>`;
+    const u = upgrade(); if (!u) return "";
+    const linhas = falta().map((k) => { const x = EXTRAS[k]; return `<a href="${x.amostra}">${img(x.icone, 38)}<span>${esc(x.dor)}<em>Experimentar grátis ›</em></span></a>`; }).join("")
+      + (BCOMP.length && !tem.has("b") ? `<a href="#/oferta/b">${img("trophy.png", 38)}<span><b>E 5 bónus exclusivos:</b> Festas do Ano (Natal, Ano Novo, Páscoa e mais), O Livro da Minha Vida, 12 Sessões de Grupo, Diplomas e Músicas da Época.<em>Ver os bónus ›</em></span></a>` : "");
+    return `<div class="destaque up"><span class="selo">COMPLETE O SEU KIT</span>
+      <h2>O kit ocupa 15 minutos. E o resto do dia?</h2>
+      ${UP.imagem ? `<img class="dt-img" src="${UP.imagem}" width="1000" height="760" alt="As folhas do pacote Completo">` : ""}
+      <div class="dt-pontos up">${linhas}</div>
+      <div class="dt-preco"><b>${u.preco}</b></div><p class="dt-depois">O Completo custa 34,90 €. Como já tem ${u.ja}, paga só a diferença.</p>
+      <a class="botao grande" href="${u.ck}">Quero o Completo</a>
+      ${soDiaDia() ? `<a class="dt-mais" href="${UP.d9}">Ou só o Plano de 90 Dias e os Jogos: +9,90 €</a>` : ""}</div>`;
   }
 
-  function faixaNovidade() {
-    if (pacoteVale()) return "";
-    const ordem = vitrine().filter((x) => !tem.has(x));
-    if (!ordem.length) return "";
-    const ult = ler("lc-faixa", 0);
-    if (Date.now() - ult < 24 * 3600 * 1000) return "";
-    const x = X(ordem[0]);
-    return `<div class="novidade"><button class="fecha" aria-label="Fechar">✕</button><span class="selo">NOVIDADE PARA SI</span><div class="nv-l">${img(x.icone, 54)}<div><b>${esc(x.nome)}</b><p>${esc(x.gancho)}</p></div></div><a class="botao" href="#/oferta/${ordem[0]}">Ver como funciona</a></div>`;
+  /* a cada 3 atividades do kit feitas, a festa mostra UMA linha discreta com a amostra de um complemento que falta */
+  function ofertaFesta() {
+    if (!upgrade()) return "";
+    const n = ler("lc-festas", 0) + 1; gravar("lc-festas", n);
+    const f = falta(); if (n % 3 || !f.length) return "";
+    const x = EXTRAS[f[(n / 3) % f.length]];
+    return `<a class="f-of" href="${x.amostra}">${img(x.icone, 40)}<span>${esc(x.dor)}</span><em>Experimentar ›</em></a>`;
   }
 
   async function hub() {
@@ -331,21 +320,21 @@
     const extra = (k) => {
       const x = X(k);
       if (tem.has(k)) return `<a class="tranc livre" href="#/${x.rota}" style="--c:${x.cor}">${img(x.icone, 50)}<div><b>${esc(x.nome)}</b><small>${esc(x.descricao)}</small></div><span class="cadeado">›</span></a>`;
-      return `<a class="tranc" href="#/oferta/${k}">${img(x.icone, 50)}<div><b>${esc(x.nome)}</b><small>${esc(x.descricao)}</small></div><span class="cadeado">🔒</span></a>`;
+      return `<a class="tranc" href="#/oferta/${k}">${img(x.icone, 50)}<div><b>${esc(x.nome)}</b><small>${esc(x.descricao)}</small></div><span class="exp">${k === "b" ? "Ver" : "Experimentar"}</span></a>`;
     };
+    const lista = [...ORDEM, ...(BCOMP.length && !tem.has("b") ? ["b"] : [])];
+    const bonusC = tem.has("b") ? `<p class="secao">Bónus do Completo</p><div class="bonus">${BCOMP.map((b) => `<a class="pdf" href="../assets/pdf/${b.ficheiro}" download>${img(b.icone, 40)}${esc(b.nome)}</a>`).join("")}</div>` : "";
     const hoje = tem.has("p") ? `<a class="hoje" href="#/plano">${img("calendar.png", 56)}<div><b>Atividade de hoje</b><small>Plano de 90 Dias: continuar onde parou</small></div></a>` : "";
     const bonus = CFG.bonus.map((b) => `<a class="pdf" href="../assets/pdf/${b.ficheiro}" download>${img(b.icone, 40)}${esc(b.nome)}</a>`).join("");
-    app.innerHTML = `${faixaNovidade()}
+    app.innerHTML = `
       <div class="ola"><div class="avos">${img("old_woman.png", 92)}${img("old_man.png", 92)}</div><h1>${esc(CFG.marca)}</h1><p>Atividades para manter a mente ativa. Fazer no ecrã ou imprimir.</p></div>
       ${destaque()}
       <a class="pdf-destaque" href="#/pdfs">${img("page_facing_up.png", 38)}<span>Prefere papel? Descarregar tudo em PDF</span></a>
       ${hoje}
       <p class="secao">Os 8 cadernos</p><div class="cadernos">${cards}</div>
-      <p class="secao">Para ir mais longe</p><div class="extras">${vitrine().map(extra).join("")}</div>
-      <p class="secao">Bónus para descarregar</p><div class="bonus">${bonus}</div>
+      <p class="secao">Para ir mais longe</p><div class="extras">${lista.map(extra).join("")}</div>
+      ${bonusC}<p class="secao">Bónus para descarregar</p><div class="bonus">${bonus}</div>
       <p class="rodape">Estas atividades são um passatempo para exercitar a mente. Não substituem o acompanhamento médico.</p>`;
-    const f = $(".novidade .fecha"); if (f) f.onclick = () => { gravar("lc-faixa", Date.now()); $(".novidade").remove(); };
-    ligaPrazo();
   }
 
   async function caderno(id) {
@@ -367,80 +356,104 @@
     M[a.app.motor]($(".motor"), a.app, () => {
       marcar(a.id);
       if (voltar && voltar.startsWith("#/plano")) festa("Muito bem!", "Mais uma atividade feita.", voltar);
-      else festa("Muito bem!", seguinte ? "Atividade concluída. A seguinte espera por si." : "Terminou o último nível deste caderno!", seguinte ? `#/a/${id}/${seguinte.n}` : "#/c/" + id);
+      else festa("Muito bem!", seguinte ? "Atividade concluída. A seguinte espera por si." : "Terminou o último nível deste caderno!", seguinte ? `#/a/${id}/${seguinte.n}` : "#/c/" + id, ofertaFesta());
     });
     $(".festa .f-voltar").textContent = voltar && voltar.startsWith("#/plano") ? "Voltar ao plano" : seguinte ? "Atividade seguinte" : "Voltar ao caderno";
     ligaImprimir(a.papel);
   }
 
-  /* ------------------------------ Plano de 90 Dias */
+  /* ------------------------------ Plano de 90 Dias (amostra: dias 1 a 3) */
   async function plano(dia) {
-    if (!tem.has("p")) return oferta("p");
+    const dono = tem.has("p");
+    if (!dono && dia && !livre.p(dia)) return oferta("p");
     const x = EXTRAS.p; cor(x.cor, x.cor2);
     const P = await dados("plano");
     const feitoDia = (d) => d.atividades.every((a) => feitas[a.id]);
     if (!dia) {
       const hoje = P.dias.find((d) => !feitoDia(d)) || P.dias[P.dias.length - 1];
-      app.innerHTML = `${topo("#/", "‹ Início")}${faixa(img(x.icone, 44), x.nome)}
-        ${pdfTopo(x.pdf, "Descarregar o plano em PDF")}<a class="hoje grande" href="#/plano/${hoje.dia}">${img("calendar.png", 64)}<div><b>Dia ${hoje.dia}</b><small>A atividade de hoje está pronta</small></div></a>
-        <p class="secao">Os 90 dias</p><div class="dias">${P.dias.map((d) => `<a class="dia ${feitoDia(d) ? "feito" : ""} ${d.dia === hoje.dia ? "hj" : ""}" href="#/plano/${d.dia}">${d.dia}</a>`).join("")}</div>`;
+      const hojeLivre = dono || livre.p(hoje.dia);
+      const dia1 = (d) => (dono || livre.p(d.dia)
+        ? `<a class="dia ${feitoDia(d) ? "feito" : ""} ${d.dia === hoje.dia ? "hj" : ""}" href="#/plano/${d.dia}">${d.dia}</a>`
+        : `<a class="dia tr" href="#/oferta/p" aria-label="Dia ${d.dia}, no pacote Completo">🔒</a>`);
+      app.innerHTML = `${topo("#/", "‹ Início")}${faixa(img(x.icone, 44), x.nome)}${dono ? "" : amostra("p")}
+        ${dono ? pdfTopo(x.pdf, "Descarregar o plano em PDF") : ""}<a class="hoje grande" href="${hojeLivre ? "#/plano/" + hoje.dia : "#/oferta/p"}">${img("calendar.png", 64)}<div><b>Dia ${hoje.dia}</b><small>${hojeLivre ? "A atividade de hoje está pronta" : "Os dias seguintes vêm no pacote Completo"}</small></div></a>
+        <p class="secao">Os 90 dias</p><div class="dias">${P.dias.map(dia1).join("")}</div>`;
       return;
     }
     const d = P.dias.find((z) => z.dia === +dia);
     const nomes = Object.fromEntries(CFG.cadernos.map((c) => [c.id, c]));
-    app.innerHTML = `${topo("#/plano", "‹ Plano")}${faixa(img(x.icone, 44), "Dia " + d.dia + " de 90")}
+    const seg = +dia < 90 ? (dono || livre.p(+dia + 1) ? `<a class="botao claro" href="#/plano/${+dia + 1}">Ver o dia ${+dia + 1} ›</a>` : `<a class="botao claro" href="#/oferta/p">O dia ${+dia + 1} e os seguintes vêm no Completo ›</a>`) : "";
+    app.innerHTML = `${topo("#/plano", "‹ Plano")}${faixa(img(x.icone, 44), "Dia " + d.dia + " de 90")}${dono ? "" : amostra("p")}
       <p class="dica">${esc(d.nota)}</p>
       <div class="ativs">${d.atividades.map((a) => `<a class="ativ ${feitas[a.id] ? "feita" : ""}" href="#/pa/${d.dia}/${a.cad}/${a.n}">${img(nomes[a.cad].icone, 44)}<b>${esc(a.titulo)}<small>${esc(nomes[a.cad].nome)}</small></b><span class="ck">${feitas[a.id] ? "✓" : ""}</span></a>`).join("")}</div>
       ${feitoDia(d) ? `<p class="parabens">${img("trophy.png", 60)}Dia ${d.dia} concluído!</p>` : ""}
-      ${+dia < 90 ? `<a class="botao claro" href="#/plano/${+dia + 1}">Ver o dia ${+dia + 1} ›</a>` : ""}`;
+      ${seg}`;
   }
 
-  /* ------------------------------ Memorias da Epoca */
+  /* ------------------------------ Memorias da Epoca (amostra: 1.a pergunta e 1.a conversa) */
   async function memorias(tipo, i) {
-    if (!tem.has("m")) return oferta("m");
+    const dono = tem.has("m");
+    if (!dono && tipo && !livre.m(tipo, i)) return oferta("m");
     const x = EXTRAS.m; cor(x.cor, x.cor2);
     const Mm = await dados("memorias");
     if (!tipo) {
-      const bloco = (t, arr, rot) => `<p class="secao">${rot}</p><div class="ativs">${arr.map((a, k) => `<a class="ativ ${feitas["m-" + t + "-" + k] ? "feita" : ""}" href="#/m/${t}/${k}">${img(a.icone || x.icone, 40)}<b>${esc(a.titulo)}</b><span class="ck">${feitas["m-" + t + "-" + k] ? "✓" : ""}</span></a>`).join("")}</div>`;
-      app.innerHTML = `${topo("#/", "‹ Início")}${faixa(img(x.icone, 44), x.nome)}${pdfTopo(x.pdf, "Descarregar tudo em PDF")}<p class="dica">${esc(x.descricao)}. Para fazer juntos e conversar.</p>
+      const item = (t, a, k) => {
+        const conteudo = `${img(a.icone || x.icone, 40)}<b>${esc(a.titulo)}</b>`;
+        if (!dono && !livre.m(t, k)) return `<a class="ativ tr" href="#/oferta/m">${conteudo}<span class="ck">🔒</span></a>`;
+        return `<a class="ativ ${feitas["m-" + t + "-" + k] ? "feita" : ""}" href="#/m/${t}/${k}">${conteudo}<span class="ck">${feitas["m-" + t + "-" + k] ? "✓" : dono ? "" : "grátis"}</span></a>`;
+      };
+      const bloco = (t, arr, rot) => `<p class="secao">${rot}</p><div class="ativs">${arr.map((a, k) => item(t, a, k)).join("")}</div>`;
+      app.innerHTML = `${topo("#/", "‹ Início")}${faixa(img(x.icone, 44), x.nome)}${dono ? pdfTopo(x.pdf, "Descarregar tudo em PDF") : amostra("m")}<p class="dica">${esc(x.descricao)}. Para fazer juntos e conversar.</p>
         ${bloco("quiz", Mm.quizzes, "Lembra-se?")}${bloco("sopa", Mm.sopas, "Sopas de letras de antigamente")}${bloco("conversa", Mm.conversa, "Cartões de conversa")}`;
       return;
     }
     const arr = { quiz: Mm.quizzes, sopa: Mm.sopas, conversa: Mm.conversa }[tipo]; const a = arr[+i];
-    app.innerHTML = `${topo("#/memorias")}${faixa(img(x.icone, 40), x.nome)}<h1 class="titulo">${esc(a.titulo)}</h1>${a.pdf ? barraPdf(a.pdf, x.pdf, "Tudo em PDF") : ""}<p class="dica">${a.instr_app}</p><div class="motor"></div>${a.papel ? imprimir() : ""}`;
+    app.innerHTML = `${topo("#/memorias")}${faixa(img(x.icone, 40), x.nome)}${dono ? "" : amostra("m")}<h1 class="titulo">${esc(a.titulo)}</h1>${a.pdf ? barraPdf(a.pdf, dono ? x.pdf : "", "Tudo em PDF") : ""}<p class="dica">${a.instr_app}</p><div class="motor"></div>${a.papel ? imprimir() : ""}`;
     M[a.app.motor]($(".motor"), a.app, () => { marcar("m-" + tipo + "-" + i); festa("Muito bem!", "Que bom recordar.", "#/memorias"); });
     $(".festa .f-voltar").textContent = "Voltar às Memórias";
     if (a.papel) ligaImprimir(a.papel);
   }
 
-  /* ------------------------------ Corpo Ativo */
+  /* ------------------------------ Corpo Ativo (amostra: a 1.a rotina) */
   async function corpo(i) {
-    if (!tem.has("c")) return oferta("c");
+    const dono = tem.has("c");
+    if (!dono && i !== undefined && !livre.c(i)) return oferta("c");
     const x = EXTRAS.c; cor(x.cor, x.cor2);
     const C = await dados("corpo");
     if (i === undefined) {
-      app.innerHTML = `${topo("#/", "‹ Início")}${faixa(img(x.icone, 44), x.nome)}${pdfTopo(x.pdf, "Descarregar os exercícios em PDF")}<p class="aviso-s">${esc(C.aviso)}</p>
-        <p class="secao">Rotinas de 10 minutos</p><div class="ativs">${C.rotinas.map((r, k) => `<a class="ativ ${feitas["c-" + k] ? "feita" : ""}" href="#/corpo/${k}">${img(r.icone, 44)}<b>${esc(r.nome)}<small>${esc(r.descricao)}</small></b><span class="ck">${feitas["c-" + k] ? "✓" : ""}</span></a>`).join("")}</div>`;
+      const item = (r, k) => {
+        const conteudo = `${img(r.icone, 44)}<b>${esc(r.nome)}<small>${esc(r.descricao)}</small></b>`;
+        if (!dono && !livre.c(k)) return `<a class="ativ tr" href="#/oferta/c">${conteudo}<span class="ck">🔒</span></a>`;
+        return `<a class="ativ ${feitas["c-" + k] ? "feita" : ""}" href="#/corpo/${k}">${conteudo}<span class="ck">${feitas["c-" + k] ? "✓" : dono ? "" : "grátis"}</span></a>`;
+      };
+      app.innerHTML = `${topo("#/", "‹ Início")}${faixa(img(x.icone, 44), x.nome)}${dono ? pdfTopo(x.pdf, "Descarregar os exercícios em PDF") : amostra("c")}<p class="aviso-s">${esc(C.aviso)}</p>
+        <p class="secao">Rotinas de 10 minutos</p><div class="ativs">${C.rotinas.map(item).join("")}</div>`;
       return;
     }
     const r = C.rotinas[+i];
-    app.innerHTML = `${topo("#/corpo")}${faixa(img(x.icone, 40), x.nome)}<h1 class="titulo">${esc(r.nome)}</h1>${pdfTopo(x.pdf, "Descarregar os exercícios em PDF")}<p class="dica">${esc(r.descricao)} Fazer sentado numa cadeira estável.</p><div class="motor"></div>`;
+    app.innerHTML = `${topo("#/corpo")}${faixa(img(x.icone, 40), x.nome)}${dono ? "" : amostra("c")}<h1 class="titulo">${esc(r.nome)}</h1>${dono ? pdfTopo(x.pdf, "Descarregar os exercícios em PDF") : ""}<p class="dica">${esc(r.descricao)} Fazer sentado numa cadeira estável.</p><div class="motor"></div>`;
     M.rotina($(".motor"), r, () => { marcar("c-" + i); festa("Muito bem!", "Rotina concluída. O corpo agradece.", "#/corpo"); });
     $(".festa .f-voltar").textContent = "Voltar às rotinas";
   }
 
-  /* ------------------------------ Jogos para Jogar Juntos */
+  /* ------------------------------ Jogos para Jogar Juntos (amostra: o jogo da memoria) */
   async function jogos(i) {
-    if (!tem.has("j")) return oferta("j");
+    const dono = tem.has("j");
+    if (!dono && i !== undefined && !livre.j(i)) return oferta("j");
     const x = EXTRAS.j; cor(x.cor, x.cor2);
     const Jg = await dados("jogos");
     if (i === undefined) {
-      app.innerHTML = `${topo("#/", "‹ Início")}${faixa(img(x.icone, 44), x.nome)}${pdfTopo(x.pdf, "Descarregar todos os jogos em PDF")}<p class="dica">Para jogar a dois, em família, numa visita ou no grupo. Imprimir, recortar e jogar.</p>
-        <div class="ativs">${Jg.jogos.map((g, k) => `<a class="ativ" href="#/jogos/${k}">${img(g.icone, 44)}<b>${esc(g.nome)}<small>${esc(g.resumo)}</small></b><span class="ck">›</span></a>`).join("")}</div>`;
+      const item = (g, k) => {
+        const conteudo = `${img(g.icone, 44)}<b>${esc(g.nome)}<small>${esc(g.resumo)}</small></b>`;
+        if (!dono && !livre.j(k)) return `<a class="ativ tr" href="#/oferta/j">${conteudo}<span class="ck">🔒</span></a>`;
+        return `<a class="ativ" href="#/jogos/${k}">${conteudo}<span class="ck">${dono ? "›" : "grátis"}</span></a>`;
+      };
+      app.innerHTML = `${topo("#/", "‹ Início")}${faixa(img(x.icone, 44), x.nome)}${dono ? pdfTopo(x.pdf, "Descarregar todos os jogos em PDF") : amostra("j")}<p class="dica">Para jogar a dois, em família, numa visita ou no grupo. Imprimir, recortar e jogar.</p>
+        <div class="ativs">${Jg.jogos.map(item).join("")}</div>`;
       return;
     }
     const g = Jg.jogos[+i];
-    app.innerHTML = `${topo("#/jogos", "‹ Jogos")}${faixa(img(x.icone, 40), x.nome)}<h1 class="titulo">${esc(g.nome)}</h1>${pdfTopo(g.pdf, "Descarregar este jogo em PDF")}
+    app.innerHTML = `${topo("#/jogos", "‹ Jogos")}${faixa(img(x.icone, 40), x.nome)}${dono ? "" : amostra("j")}<h1 class="titulo">${esc(g.nome)}</h1>${pdfTopo(g.pdf, "Descarregar este jogo em PDF")}
       <p class="secao">Como jogar</p><ol class="como-j">${g.como.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>${g.app ? '<div class="motor"></div>' : ""}`;
     if (g.app) {
       M[g.app.motor]($(".motor"), g.app, () => festa("Muito bem!", "Que bom jogar juntos.", "#/jogos"));
@@ -453,26 +466,29 @@
     cor("#2f7fb8", "#e8f2fa");
     const item = (f, nome, ic) => `<a class="pdf" href="../assets/pdf/${f}" download>${img(ic, 40)}${esc(nome)}</a>`;
     const extra = (k) => { const x = X(k); return tem.has(k) ? item(x.pdf, x.nome, x.icone) : `<a class="pdf tr" href="#/oferta/${k}">${img(x.icone, 40)}${esc(x.nome)}<span class="cadeado">🔒</span></a>`; };
+    const bc = BCOMP.length ? `<p class="secao">Bónus do Completo</p><div class="bonus">${tem.has("b") ? BCOMP.map((b) => item(b.ficheiro, b.nome, b.icone)).join("") : BCOMP.map((b) => `<a class="pdf tr" href="#/oferta/b">${img(b.icone, 40)}${esc(b.nome)}<span class="cadeado">🔒</span></a>`).join("")}</div>` : "";
     app.innerHTML = `${topo("#/", "‹ Início")}<h1 class="titulo">Tudo em PDF</h1><p class="dica">Descarregar, guardar e imprimir as vezes que quiser.</p>
       ${item("comecar-aqui.pdf", "Guia: como usar o kit", "open_book.png")}
       <p class="secao">Os 8 cadernos</p><div class="bonus">${CFG.cadernos.map((c) => item(c.id + ".pdf", c.nome, c.icone)).join("")}</div>
-      <p class="secao">Para ir mais longe</p><div class="bonus">${vitrine().map(extra).join("")}</div>
-      <p class="secao">Bónus</p><div class="bonus">${CFG.bonus.map((b) => item(b.ficheiro, b.nome, b.icone)).join("")}</div>`;
+      <p class="secao">Para ir mais longe</p><div class="bonus">${ORDEM.map(extra).join("")}</div>
+      ${bc}<p class="secao">Bónus</p><div class="bonus">${CFG.bonus.map((b) => item(b.ficheiro, b.nome, b.icone)).join("")}</div>`;
   }
 
-  /* ------------------------------ pagina de oferta (venda dentro do produto) */
+  /* ------------------------------ pagina de oferta (venda dentro do produto): a dor, o que tem, a amostra gratis
+     e o upgrade pela diferenca. O avulso deixou de ser vendido aqui (12/10/2026) */
   function oferta(k) {
-    if (k === "d" && !pacoteVale()) return hub();
-    const x = X(k); cor(x.cor, x.cor2);
+    const x = X(k); const u = upgrade();
+    if (!x || !u) return hub();
+    cor(x.cor, x.cor2);
+    const diaDia = soDiaDia() && (k === "p" || k === "j") ? `<a class="dt-mais" href="${UP.d9}">Ou só o Plano de 90 Dias e os Jogos: +9,90 €</a>` : "";
     app.innerHTML = `${topo("#/", "‹ Início")}
-      <div class="of-topo">${img(x.icone, 110)}<span class="selo">${k === "d" ? "OFERTA ESPECIAL" : "NOVIDADE PARA SI"}</span><h1>${esc(x.nome)}</h1><p>${esc(x.promessa)}</p></div>
-      ${x.imagem ? `<img class="dt-img" src="${x.imagem}" width="1000" height="760" alt="">` : ""}
+      <div class="of-topo">${img(x.icone, 110)}<span class="selo">NO PACOTE COMPLETO</span><h1>${esc(x.nome)}</h1><p>${esc(x.dor || x.promessa)}</p></div>
       <div class="of-lista">${x.pontos.map((p) => `<div class="of-p">${img(p[0], 46)}<div><b>${esc(p[1])}</b><p>${esc(p[2])}</p></div></div>`).join("")}</div>
-      <div class="of-preco"><span>Acesso para sempre, neste mesmo sítio</span>${x.ancora ? `<s>${esc(x.ancora)}</s>` : ""}<b>${esc(x.preco)}</b>${x.ancora ? `<span>Os dois em separado custam ${esc(x.ancora)}</span>` : ""}</div>
-      ${k === "d" ? prazoHtml() : ""}
-      <a class="botao grande" href="${x.checkout}">Quero o ${esc(x.nome)}</a>
-      <p class="rodape">Pagamento seguro pela Hotmart. Assim que o pagamento for confirmado, o acesso fica na sua área de compras da Hotmart, com o guia e o link para abrir aqui.</p>`;
-    ligaPrazo();
+      ${x.amostra ? `<a class="botao claro grande" href="${x.amostra}">Experimentar grátis</a>` : ""}
+      <div class="of-up"><p>Isto e tudo o que falta ao seu kit vêm no <b>pacote Completo</b>, com 5 bónus exclusivos.</p>
+        <div class="dt-preco"><b>${u.preco}</b></div><p class="dt-depois">O Completo custa 34,90 €. Como já tem ${u.ja}, paga só a diferença.</p>
+        <a class="botao grande" href="${u.ck}">Quero o Completo</a>${diaDia}</div>
+      <p class="rodape">Pagamento seguro pela Hotmart, por MB WAY, Multibanco ou cartão. Assim que o pagamento for confirmado, abre-se o acesso ao pacote e o guia fica na sua área de compras da Hotmart.</p>`;
   }
 
   /* ------------------------------------------------------------------ rotas */
